@@ -5,44 +5,68 @@ using namespace std;
 
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
+#include <boost/interprocess/sync/named_condition.hpp>
 
 using namespace boost::interprocess;
 
-#define BUF_SIZE 1025
+#define SHARED_MEM_SIZE 16384
 #define SHARED_MEM_NAME "my_share_memory"
+
+struct DataEnvelope {
+    uint32_t FrameId;
+    uint32_t DataSize;
+    uint8_t Data[0];
+};
 
 int main() {
 
-    shared_memory_object::remove(SHARED_MEM_NAME);
+//    shared_memory_object::remove(SHARED_MEM_NAME);
+//    named_mutex::remove("mtx");
+//    named_condition::remove("cnd");
 
     //create shared memory object
     shared_memory_object share_obj(create_only, SHARED_MEM_NAME, read_write);
 
+    named_mutex named_mtx{open_or_create, "mtx"};
+    named_condition named_cnd{open_or_create, "cnd"};
+    scoped_lock<named_mutex> lock{named_mtx};
+
     //set the size of the shared memory
-    share_obj.truncate(BUF_SIZE-1);
+    share_obj.truncate(SHARED_MEM_SIZE);
 
     //map the shared memory to current process
     mapped_region mmap(share_obj, read_write);
+    auto *dataPtr = (DataEnvelope*)mmap.get_address();
 
-    //access the mapped region
-    //strcpy(static_cast<char*>(mmap.get_address()), "Hello world!");
+    uint32_t frameId = 0;
 
-    while (true)
-    {
+    while (true)  {
         cout << "Input ('Q' to exit):" << endl;
-        char szInfo[BUF_SIZE] = { 0 };
+        char buff[512] = {0 };
 
-        fgets(szInfo, BUF_SIZE, stdin);
+        fgets(buff, sizeof(buff), stdin);
 
-        if(szInfo[0] == 'Q')
+        auto data_len = std::strlen(buff);
+        dataPtr->FrameId = frameId++;
+        dataPtr->DataSize = data_len;
+
+        memset(dataPtr->Data, 0, SHARED_MEM_SIZE - (sizeof(DataEnvelope::FrameId) + sizeof(DataEnvelope::DataSize)));
+        std::strncpy(reinterpret_cast<char *>(dataPtr->Data), buff, data_len);
+
+        named_cnd.notify_all();
+        named_cnd.wait(lock);
+
+        if(buff[0] == 'Q')
             break;
 
-        //strncpy(mmap.get_address(), szInfo, BUF_SIZE - 1);
-        std::strncpy((char*)mmap.get_address(), szInfo, BUF_SIZE - 1);
-        //share_obj[BUF_SIZE - 1] = '\0';
     }
 
-	shared_memory_object::remove(SHARED_MEM_NAME);
+    named_cnd.notify_all();
+
+    shared_memory_object::remove(SHARED_MEM_NAME);
+    named_mutex::remove("mtx");
+    named_condition::remove("cnd");
 
     return 0;
 

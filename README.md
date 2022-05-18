@@ -13,6 +13,8 @@ From solution root run:
 
 ### current reading:
 
+https://valelab4.ucsf.edu/svn/3rdpartypublic/boost/doc/html/interprocess/managed_memory_segments.html
+
 https://theboostcpplibraries.com/boost.interprocess-synchronization
 
 some source refs:
