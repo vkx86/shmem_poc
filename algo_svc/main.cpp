@@ -13,6 +13,8 @@ using namespace boost::interprocess;
 #define SHARED_MEM_SIZE 16384
 #define SHARED_MEM_NAME "my_share_memory"
 
+#include "ShmDataSender.h"
+
 struct DataEnvelope {
     uint32_t FrameId;
     uint32_t DataSize;
@@ -21,9 +23,11 @@ struct DataEnvelope {
 
 int main() {
 
-//    shared_memory_object::remove(SHARED_MEM_NAME);
-//    named_mutex::remove("mtx");
-//    named_condition::remove("cnd");
+    ShmDataSender sendr1("hey_ya1", 1024);
+
+    shared_memory_object::remove(SHARED_MEM_NAME);
+    named_mutex::remove("mtx");
+    named_condition::remove("cnd");
 
     //create shared memory object
     shared_memory_object share_obj(create_only, SHARED_MEM_NAME, read_write);

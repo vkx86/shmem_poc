@@ -3,5 +3,5 @@ project(algo_svc)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(algo_svc main.cpp)
+add_executable(algo_svc main.cpp ShmDataSender.cpp ShmDataSender.h)
 target_link_libraries (algo_svc rt pthread)

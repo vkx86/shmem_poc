@@ -24,6 +24,8 @@ struct DataEnvelope {
 int main() {
 
     //open shared memory object
+    shared_memory_object share_obj1;
+
     shared_memory_object share_obj(open_only, SHARED_MEM_NAME, read_only);
 
     //map the shared memory object to current process
