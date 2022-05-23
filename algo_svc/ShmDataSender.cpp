@@ -43,7 +43,3 @@ void ShmDataSender::UnInit() {
     named_mutex::remove(std::string("mtx_" + _name).c_str());
     named_condition::remove(std::string("cnd_" + _name).c_str());
 }
-
-
-
-
