@@ -24,18 +24,15 @@ struct DataEnvelope {
 int main() {
 
     //open shared memory object
-    shared_memory_object share_obj1;
-
     shared_memory_object share_obj(open_only, SHARED_MEM_NAME, read_only);
 
     //map the shared memory object to current process
     mapped_region mmap(share_obj, read_only);
+    auto *dataPtr = (DataEnvelope*)mmap.get_address();
 
     named_mutex named_mtx{open_or_create, "mtx"};
     named_condition named_cnd{open_or_create, "cnd"};
     scoped_lock<named_mutex> lock{named_mtx};
-
-    auto *dataPtr = (DataEnvelope*)mmap.get_address();
 
     while (true)  {
         cout << dataPtr->FrameId << " : " << dataPtr->DataSize << endl;

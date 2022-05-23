@@ -28,16 +28,16 @@ int main() {
     //create shared memory object
     shared_memory_object share_obj(create_only, SHARED_MEM_NAME, read_write);
 
-    named_mutex named_mtx{open_or_create, "mtx"};
-    named_condition named_cnd{open_or_create, "cnd"};
-    scoped_lock<named_mutex> lock{named_mtx};
-
     //set the size of the shared memory
     share_obj.truncate(SHARED_MEM_SIZE);
 
     //map the shared memory to current process
     mapped_region mmap(share_obj, read_write);
     auto *dataPtr = (DataEnvelope*)mmap.get_address();
+
+    named_mutex named_mtx{open_or_create, "mtx"};
+    named_condition named_cnd{open_or_create, "cnd"};
+    scoped_lock<named_mutex> lock{named_mtx};
 
     uint32_t frameId = 0;
 
