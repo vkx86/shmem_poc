@@ -23,9 +23,7 @@ int main() {
 
     ShmDataSender dataSender(SHARED_MEM_NAME, SHARED_MEM_SIZE);
     dataSender.Stop();
-
-    std::thread t1(&ShmDataSender::Start, &dataSender);
-    t1.detach();
+    dataSender.Start();
 
     uint32_t frameId = 0;
 

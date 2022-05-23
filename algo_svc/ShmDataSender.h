@@ -10,23 +10,12 @@
 #include <queue>
 #include <cstring>
 
-struct DataEnvelope {
-    uint32_t FrameId;
-    uint32_t DataSize;
-    uint8_t *Data;
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
+#include <boost/interprocess/sync/named_condition.hpp>
 
-    DataEnvelope(uint8_t *data, uint32_t size) {
-        Data = static_cast<uint8_t *>(malloc(size));
-        memcpy(Data, data, size);
-        DataSize = size;
-    }
-
-    ~DataEnvelope() {
-        free(Data);
-    }
-
-};
-
+using namespace boost::interprocess;
 
 class ShmDataSender {
 public:
@@ -38,12 +27,12 @@ public:
     void SendData(uint8_t *data, size_t size);
 
 private:
-    bool _running;
-    std::queue<DataEnvelope*> _queue;
+    shared_memory_object *share_obj{};
+    named_mutex *named_mtx{};
+    named_condition *named_cnd{};
 
     std::string _name;
     size_t _size;
-
 };
 
 #endif //SHMEM_POC_SHMDATASENDER_H

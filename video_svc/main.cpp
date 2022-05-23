@@ -13,6 +13,8 @@ using namespace boost::interprocess;
 
 #define BUF_SIZE 1025
 #define SHARED_MEM_NAME "my_share_memory"
+#define SHARED_MTX_NAME "mtx_my_share_memory"
+#define SHARED_CND_NAME "cnd_my_share_memory"
 
 struct DataEnvelope {
     uint32_t FrameId;
@@ -23,24 +25,27 @@ struct DataEnvelope {
 
 int main() {
 
-    //open shared memory object
-    shared_memory_object share_obj1;
+//    shared_memory_object::remove(SHARED_MEM_NAME);
+//    named_mutex::remove(SHARED_MTX_NAME);
+//    named_condition::remove(SHARED_CND_NAME);
 
+    //open shared memory object
     shared_memory_object share_obj(open_only, SHARED_MEM_NAME, read_only);
 
     //map the shared memory object to current process
     mapped_region mmap(share_obj, read_only);
 
-    named_mutex named_mtx{open_or_create, "mtx"};
-    named_condition named_cnd{open_or_create, "cnd"};
-    scoped_lock<named_mutex> lock{named_mtx};
+    named_mutex named_mtx{open_or_create, SHARED_MTX_NAME};
+    named_condition named_cnd{open_or_create, SHARED_CND_NAME};
 
     auto *dataPtr = (DataEnvelope*)mmap.get_address();
 
     while (true)  {
+
         cout << dataPtr->FrameId << " : " << dataPtr->DataSize << endl;
         cout << dataPtr->Data << endl;
 
+        scoped_lock<named_mutex> lock{named_mtx};
         named_cnd.notify_all();
         named_cnd.wait(lock);
 
@@ -53,9 +58,8 @@ int main() {
 
     //remove shared memory object
     shared_memory_object::remove(SHARED_MEM_NAME);
-    named_mutex::remove("mtx");
-    named_condition::remove("cnd");
-
+    named_mutex::remove(SHARED_MTX_NAME);
+    named_condition::remove(SHARED_CND_NAME);
 
     return 0;
 }
