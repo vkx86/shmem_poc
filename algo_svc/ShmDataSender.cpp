@@ -25,26 +25,29 @@ void ShmDataSender::Start() {
     share_obj->truncate(_size);
 
     named_mtx = new named_mutex(open_or_create, std::string("mtx_" + _name).c_str());
-    named_cnd = new named_condition(open_or_create, std::string("mtx_" + _name).c_str());
+    named_cnd = new named_condition(open_or_create, std::string("cnd_" + _name).c_str());
 }
 
 void ShmDataSender::Stop() {
+    shared_memory_object::remove(_name.c_str());
+    named_mutex::remove(std::string("mtx_" + _name).c_str());
+    named_condition::remove(std::string("cnd_" + _name).c_str());
 
     delete named_mtx;
     delete named_cnd;
     delete share_obj;
 
-    shared_memory_object::remove(_name.c_str());
-    named_mutex::remove(std::string("mtx_" + _name).c_str());
-    named_condition::remove(std::string("cnd_" + _name).c_str());
+    named_mtx = nullptr;
+    named_cnd = nullptr;
+    share_obj = nullptr;
 }
 
 void ShmDataSender::SendData(uint8_t *data, size_t size) {
 
     mapped_region mmap(*share_obj, read_write);
-    scoped_lock<named_mutex> lock{*named_mtx};
-
     auto *dataPtr = (DataEnvelope*)mmap.get_address();
+
+    scoped_lock<named_mutex> lock{*named_mtx};
 
     dataPtr->FrameId = 111;
     dataPtr->DataSize = size;

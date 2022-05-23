@@ -37,6 +37,7 @@ int main() {
 
     named_mutex named_mtx{open_or_create, SHARED_MTX_NAME};
     named_condition named_cnd{open_or_create, SHARED_CND_NAME};
+    scoped_lock<named_mutex> lock{named_mtx};
 
     auto *dataPtr = (DataEnvelope*)mmap.get_address();
 
@@ -45,7 +46,6 @@ int main() {
         cout << dataPtr->FrameId << " : " << dataPtr->DataSize << endl;
         cout << dataPtr->Data << endl;
 
-        scoped_lock<named_mutex> lock{named_mtx};
         named_cnd.notify_all();
         named_cnd.wait(lock);
 
