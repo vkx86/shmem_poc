@@ -39,7 +39,6 @@ int main() {
         if(buff[0] == 'Q')
             break;
 
-
     }
 
     dataSender.Stop();

@@ -5,11 +5,6 @@
 #ifndef SHMEM_POC_SHMDATASENDER_H
 #define SHMEM_POC_SHMDATASENDER_H
 
-#include <cstddef>
-#include <string>
-#include <queue>
-#include <cstring>
-
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
