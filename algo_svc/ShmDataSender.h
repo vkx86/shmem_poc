@@ -14,12 +14,12 @@ using namespace boost::interprocess;
 
 class ShmDataSender {
 public:
-    ShmDataSender(const char *name, size_t size);
+    explicit ShmDataSender(const char *name);
     virtual ~ShmDataSender();
 
-    void Start();
+    void Start(long size);
     void Stop();
-    void SendData(uint8_t *data, size_t size);
+    void SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data);
 
 private:
     shared_memory_object *share_obj{};
@@ -27,7 +27,6 @@ private:
     named_condition *named_cnd{};
 
     std::string _name;
-    size_t _size;
 };
 
 #endif //SHMEM_POC_SHMDATASENDER_H

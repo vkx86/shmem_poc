@@ -3,26 +3,21 @@
 //
 
 #include "ShmDataSender.h"
+#include "DataEnvelope.h"
 
-struct DataEnvelope {
-    uint32_t FrameId;
-    uint32_t DataSize;
-    uint8_t Data[0];
-};
-
-
-ShmDataSender::ShmDataSender(const char *name, size_t size) {
+ShmDataSender::ShmDataSender(const char *name) {
     _name = name;
-    _size = size;
 }
 
 ShmDataSender::~ShmDataSender(){
     Stop();
 }
 
-void ShmDataSender::Start() {
+void ShmDataSender::Start(long size) {
+    //Stop();
+
     share_obj = new shared_memory_object(create_only, _name.c_str(), read_write);
-    share_obj->truncate(_size);
+    share_obj->truncate(size);
 
     named_mtx = new named_mutex(open_or_create, std::string("mtx_" + _name).c_str());
     named_cnd = new named_condition(open_or_create, std::string("cnd_" + _name).c_str());
@@ -43,18 +38,17 @@ void ShmDataSender::Stop() {
     share_obj = nullptr;
 }
 
-void ShmDataSender::SendData(uint8_t *data, size_t size) {
+void ShmDataSender::SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data) {
 
     mapped_region mmap(*share_obj, read_write);
     auto *dataPtr = (DataEnvelope*)mmap.get_address();
 
     scoped_lock<named_mutex> lock{*named_mtx};
 
-    dataPtr->FrameId = 111;
-    dataPtr->DataSize = size;
-    memcpy(dataPtr->Data, data, size);
+    dataPtr->FrameId = frameId;
+    dataPtr->DataSize = dataSize;
+    memcpy(dataPtr->Data, data, dataSize);
 
     named_cnd->notify_all();
     named_cnd->wait(lock);
-
 }

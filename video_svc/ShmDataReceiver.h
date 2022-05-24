@@ -12,20 +12,17 @@
 
 using namespace boost::interprocess;
 
-struct DataEnvelope {
-    uint32_t FrameId;
-    uint32_t DataSize;
-    uint8_t *Data;
-};
+#include "DataEnvelope.h"
 
 class ShmDataReceiver {
-
-    ShmDataReceiver(const char *name);
+public:
+    explicit ShmDataReceiver(const char *name);
     virtual ~ShmDataReceiver();
 
     void Start();
     void Stop();
-    DataEnvelope* ReadData();
+    void ReadDataInto(DataEnvelope* outData);
+    void NotifyDataRead();
 
 private:
     shared_memory_object *share_obj{};

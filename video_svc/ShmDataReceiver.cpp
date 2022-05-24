@@ -34,21 +34,20 @@ void ShmDataReceiver::Stop() {
 
 }
 
-DataEnvelope *ShmDataReceiver::ReadData() {
-
+void ShmDataReceiver::ReadDataInto(DataEnvelope *outData) {
     scoped_lock<named_mutex> lock{*named_mtx};
+    named_cnd->wait(lock);
 
     mapped_region mmap(*share_obj, read_only);
     auto *dataPtr = (DataEnvelope*)mmap.get_address();
 
-    auto *result = new DataEnvelope();
-    result->FrameId = dataPtr->FrameId;
-    result->DataSize = dataPtr->DataSize;
-    result->Data = static_cast<uint8_t *>(malloc(dataPtr->DataSize));
-    memcpy(result->Data, dataPtr->Data, dataPtr->DataSize);
+    outData->FrameId = dataPtr->FrameId;
+    outData->DataSize = dataPtr->DataSize;
+    memcpy(outData->Data, dataPtr->Data, dataPtr->DataSize);
 
     named_cnd->notify_all();
-    named_cnd->wait(lock);
+}
 
-    return result;
+void ShmDataReceiver::NotifyDataRead() {
+    named_cnd->notify_all();
 }
