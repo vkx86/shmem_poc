@@ -2,6 +2,9 @@
 // Created by vadim on 5/22/22.
 //
 
+#include <chrono>
+#include <iostream>
+
 #include "ShmDataSender.h"
 #include "DataEnvelope.h"
 
@@ -48,6 +51,12 @@ void ShmDataSender::SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data)
     dataPtr->FrameId = frameId;
     dataPtr->DataSize = dataSize;
     memcpy(dataPtr->Data, data, dataSize);
+
+    auto time = std::chrono::system_clock::now().time_since_epoch();
+    std::chrono::seconds seconds = std::chrono::duration_cast< std::chrono::seconds >(time);
+    std::chrono::microseconds ms = std::chrono::duration_cast< std::chrono::microseconds >(time);
+    auto result = (double) seconds.count() + ((double) (ms.count() % 1000000)/1000000.0);
+    std::cout << "Data sent at: " << std::to_string(result) << std::endl;
 
     named_cnd->notify_all();
     named_cnd->wait(lock);
