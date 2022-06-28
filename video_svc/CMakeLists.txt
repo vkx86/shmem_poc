@@ -11,6 +11,7 @@ find_package (PkgConfig REQUIRED)
 
 include_directories(../common)
 
-add_executable(video_svc main.cpp ShmDataReceiver.cpp ShmDataReceiver.h)
+add_executable(video_svc main.cpp ../common/ShmDataReceiver.cpp ../common/ShmDataReceiver.h)
+
 #target_link_libraries (video_svc Boost::system rt)
 target_link_libraries (video_svc rt pthread)
