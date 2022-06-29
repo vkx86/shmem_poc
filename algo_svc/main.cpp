@@ -2,9 +2,8 @@
 using namespace std;
 
 #include "ShmDataSender.h"
+#include "ShmDataExchDefs.h"
 
-#define SHARED_MEM_SIZE 16384
-#define SHARED_MEM_NAME "my_share_memory"
 
 int main() {
 

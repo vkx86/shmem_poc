@@ -4,8 +4,6 @@ using namespace std;
 
 #include "ShmDataReceiver.h"
 
-#define SHARED_MEM_NAME "my_share_memory"
-
 
 int main() {
 

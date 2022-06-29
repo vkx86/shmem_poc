@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "ShmDataSender.h"
-#include "DataEnvelope.h"
+#include "ShmDataExchDefs.h"
 
 ShmDataSender::ShmDataSender(const char *name) {
     _name = name;

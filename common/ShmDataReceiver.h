@@ -12,7 +12,7 @@
 
 using namespace boost::interprocess;
 
-#include "DataEnvelope.h"
+#include "ShmDataExchDefs.h"
 
 class ShmDataReceiver {
 public:
