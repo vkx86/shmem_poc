@@ -17,9 +17,17 @@ ShmDataReceiver::~ShmDataReceiver() {
 }
 
 bool ShmDataReceiver::Start() {
+    _isOpened = CheckIsOpened();
+
+    if(!_isOpened){
+        return _isOpened;
+    }
+
     share_obj = new shared_memory_object(open_only, _name.c_str(), read_only);
     named_mtx = new named_mutex(open_or_create, std::string("mtx_" + _name).c_str());
     named_cnd = new named_condition(open_or_create, std::string("cnd_" + _name).c_str());
+
+    return _isOpened;
 }
 
 void ShmDataReceiver::Stop() {
