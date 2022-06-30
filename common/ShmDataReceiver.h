@@ -19,7 +19,7 @@ public:
     explicit ShmDataReceiver(const char *name);
     virtual ~ShmDataReceiver();
 
-    void Start();
+    bool Start();
     void Stop();
     void ReadDataInto(DataEnvelope* outData);
     void NotifyDataRead();
@@ -30,6 +30,8 @@ private:
     named_condition *named_cnd{};
 
     std::string _name;
+    bool _isOpened;
+    bool CheckIsOpened();
 };
 
 

@@ -14,7 +14,7 @@ ShmDataReceiver::~ShmDataReceiver() {
     Stop();
 }
 
-void ShmDataReceiver::Start() {
+bool ShmDataReceiver::Start() {
     share_obj = new shared_memory_object(open_only, _name.c_str(), read_only);
     named_mtx = new named_mutex(open_or_create, std::string("mtx_" + _name).c_str());
     named_cnd = new named_condition(open_or_create, std::string("cnd_" + _name).c_str());
@@ -37,6 +37,10 @@ void ShmDataReceiver::Stop() {
 }
 
 void ShmDataReceiver::ReadDataInto(DataEnvelope *outData) {
+
+    if(!_isOpened)
+        return;
+
     scoped_lock<named_mutex> lock{*named_mtx};
     named_cnd->wait(lock);
 
@@ -47,17 +51,35 @@ void ShmDataReceiver::ReadDataInto(DataEnvelope *outData) {
     outData->DataSize = dataPtr->DataSize;
     memcpy(outData->Data, dataPtr->Data, dataPtr->DataSize);
 
+//    auto time = std::chrono::system_clock::now().time_since_epoch();
+//    std::chrono::seconds seconds = std::chrono::duration_cast< std::chrono::seconds >(time);
+//    std::chrono::microseconds ms = std::chrono::duration_cast< std::chrono::microseconds >(time);
+//    auto result = (double) seconds.count() + ((double) (ms.count() % 1000000)/1000000.0);
+//    std::cout << "Data received at: " << std::to_string(result) << std::endl;
 
-    auto time = std::chrono::system_clock::now().time_since_epoch();
-    std::chrono::seconds seconds = std::chrono::duration_cast< std::chrono::seconds >(time);
-    std::chrono::microseconds ms = std::chrono::duration_cast< std::chrono::microseconds >(time);
-    auto result = (double) seconds.count() + ((double) (ms.count() % 1000000)/1000000.0);
-    std::cout << "Data received at: " << std::to_string(result) << std::endl;
 
+//    std::cout << "Sleeping..." << std::endl;
+//    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+//    std::cout << "Finished Sleeping !!!" << std::endl;
 
     named_cnd->notify_all();
 }
 
 void ShmDataReceiver::NotifyDataRead() {
     named_cnd->notify_all();
+}
+
+bool ShmDataReceiver::CheckIsOpened() {
+
+    auto tmpHandle = shm_open(_name.c_str(), O_CREAT | O_EXCL, O_RDWR);
+    if (tmpHandle == -1) {
+        if (EEXIST == errno)
+            return true;
+
+        return false;
+    }
+
+    close(tmpHandle);
+    shm_unlink(_name.c_str());
+    return false;
 }

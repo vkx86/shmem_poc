@@ -1,11 +1,21 @@
 #include <iostream>
+#include <csignal>
+
 using namespace std;
 
 #include "ShmDataSender.h"
 #include "ShmDataExchDefs.h"
 
+static volatile int keepRunning = 1;
+
+void intHandler(int dummy) {
+    keepRunning = 0;
+}
 
 int main() {
+
+    signal(SIGINT, intHandler);
+    //signal(SIGTSTP, intHandler);
 
     ShmDataSender dataSender(SHARED_MEM_NAME);
     dataSender.Stop();
@@ -13,7 +23,7 @@ int main() {
 
     uint32_t frameId = 0;
 
-    while (true)  {
+    while (keepRunning)  {
 
         cout << "Input ('Q' to exit):" << endl;
         char buff[512] = {0 };
@@ -29,6 +39,7 @@ int main() {
 
     }
 
+    cout << "Stopping sender..." << endl;
     dataSender.Stop();
     return 0;
 }

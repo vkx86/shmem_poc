@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <iostream>
+#include "boost/date_time/posix_time/posix_time_types.hpp"
 
 #include "ShmDataSender.h"
 #include "ShmDataExchDefs.h"
@@ -52,12 +53,23 @@ void ShmDataSender::SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data)
     dataPtr->DataSize = dataSize;
     memcpy(dataPtr->Data, data, dataSize);
 
-    auto time = std::chrono::system_clock::now().time_since_epoch();
-    std::chrono::seconds seconds = std::chrono::duration_cast< std::chrono::seconds >(time);
-    std::chrono::microseconds ms = std::chrono::duration_cast< std::chrono::microseconds >(time);
-    auto result = (double) seconds.count() + ((double) (ms.count() % 1000000)/1000000.0);
-    std::cout << "Data sent at: " << std::to_string(result) << std::endl;
+//    auto time = std::chrono::system_clock::now().time_since_epoch();
+//    std::chrono::seconds seconds = std::chrono::duration_cast< std::chrono::seconds >(time);
+//    std::chrono::microseconds ms = std::chrono::duration_cast< std::chrono::microseconds >(time);
+//    auto result = (double) seconds.count() + ((double) (ms.count() % 1000000)/1000000.0);
+//    std::cout << "Data sent at: " << std::to_string(result) << std::endl;
 
     named_cnd->notify_all();
     named_cnd->wait(lock);
+
+//    boost::posix_time::ptime timeOut(boost::posix_time::second_clock::local_time());
+//    std::cout << timeOut.time_of_day().ticks() << std::endl;
+//    timeOut += boost::posix_time::seconds(2);
+//    std::cout << timeOut.time_of_day().ticks() << std::endl;
+//
+//    if( !named_cnd->timed_wait(lock, timeOut)){
+//        std::cout << "timed out" << std::endl;
+//    }
+
+    //std::cout << "unlocked" << std::endl;
 }
