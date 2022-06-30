@@ -1,58 +1,48 @@
-
 #include <iostream>
-#include <string>
+#include <thread>
+#include <csignal>
 
 using namespace std;
 
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/sync/named_mutex.hpp>
-#include <boost/interprocess/sync/named_condition.hpp>
+#include "ShmDataReceiver.h"
 
-using namespace boost::interprocess;
+static volatile int keepRunning = 1;
 
-#define BUF_SIZE 1025
-#define SHARED_MEM_NAME "my_share_memory"
-
-struct DataEnvelope {
-    uint32_t FrameId;
-    uint32_t DataSize;
-    uint8_t Data[0];
-};
-
+void intHandler(int dummy) {
+    keepRunning = 0;
+}
 
 int main() {
 
-    //open shared memory object
-    shared_memory_object share_obj(open_only, SHARED_MEM_NAME, read_only);
+    signal(SIGINT, intHandler);
+    //signal(SIGTSTP, intHandler);
 
-    //map the shared memory object to current process
-    mapped_region mmap(share_obj, read_only);
-    auto *dataPtr = (DataEnvelope*)mmap.get_address();
+    uint8_t buffer[4096];
+    DataEnvelope *received = reinterpret_cast<DataEnvelope *>(buffer);
 
-    named_mutex named_mtx{open_or_create, "mtx"};
-    named_condition named_cnd{open_or_create, "cnd"};
-    scoped_lock<named_mutex> lock{named_mtx};
-
-    while (true)  {
-        cout << dataPtr->FrameId << " : " << dataPtr->DataSize << endl;
-        cout << dataPtr->Data << endl;
-
-        named_cnd.notify_all();
-        named_cnd.wait(lock);
-
-        if(dataPtr->Data[0] == 'Q')
-            break;
-
+    ShmDataReceiver dataReceiver(SHARED_MEM_NAME);
+    while (keepRunning && !dataReceiver.Start()){
+        cout << "Connecting..." << endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
-    named_cnd.notify_all();
+    cout << "Started listening..." << endl;
 
-    //remove shared memory object
-    shared_memory_object::remove(SHARED_MEM_NAME);
-    named_mutex::remove("mtx");
-    named_condition::remove("cnd");
+    while (keepRunning)  {
+        memset(buffer, 0, sizeof(buffer));
 
+        dataReceiver.ReadDataInto(received);
 
+        cout << received->FrameId << " : " << received->DataSize << endl;
+        cout << received->Data << endl;
+
+        if(received->Data[0] == 'Q'){
+            cout << "Exited!!!" << endl;
+            break;
+        }
+    }
+
+    cout << "Stopping receiver..." << endl;
+    dataReceiver.Stop();
     return 0;
 }
