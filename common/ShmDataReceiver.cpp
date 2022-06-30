@@ -4,6 +4,8 @@
 
 #include <chrono>
 #include <iostream>
+#include <thread>
+
 #include "ShmDataReceiver.h"
 
 ShmDataReceiver::ShmDataReceiver(const char *name) {
