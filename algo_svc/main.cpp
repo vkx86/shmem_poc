@@ -18,8 +18,9 @@ int main() {
     //signal(SIGTSTP, intHandler);
 
     ShmDataSender dataSender(SHARED_MEM_NAME);
-    dataSender.Stop();
+    //dataSender.Stop();
     dataSender.Start(SHARED_MEM_SIZE);
+    dataSender.NotifyDataSent();
 
     uint32_t frameId = 0;
 

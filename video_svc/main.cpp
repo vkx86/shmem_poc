@@ -28,6 +28,8 @@ int main() {
 
     cout << "Started listening..." << endl;
 
+    dataReceiver.NotifyDataRead();
+
     while (keepRunning)  {
         memset(buffer, 0, sizeof(buffer));
 

@@ -20,7 +20,7 @@ ShmDataSender::~ShmDataSender(){
 void ShmDataSender::Start(long size) {
     //Stop();
 
-    share_obj = new shared_memory_object(create_only, _name.c_str(), read_write);
+    share_obj = new shared_memory_object(open_or_create, _name.c_str(), read_write);
     share_obj->truncate(size);
 
     named_mtx = new named_mutex(open_or_create, std::string("mtx_" + _name).c_str());
@@ -29,9 +29,9 @@ void ShmDataSender::Start(long size) {
 
 void ShmDataSender::Stop() {
 
-    shared_memory_object::remove(_name.c_str());
-    named_mutex::remove(std::string("mtx_" + _name).c_str());
-    named_condition::remove(std::string("cnd_" + _name).c_str());
+//    shared_memory_object::remove(_name.c_str());
+//    named_mutex::remove(std::string("mtx_" + _name).c_str());
+//    named_condition::remove(std::string("cnd_" + _name).c_str());
 
     delete named_mtx;
     delete named_cnd;
@@ -72,4 +72,8 @@ void ShmDataSender::SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data)
 //    }
 
     //std::cout << "unlocked" << std::endl;
+}
+
+void ShmDataSender::NotifyDataSent() {
+    named_cnd->notify_all();
 }

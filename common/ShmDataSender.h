@@ -20,6 +20,7 @@ public:
     void Start(long size);
     void Stop();
     void SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data);
+    void NotifyDataSent();
 
 private:
     shared_memory_object *share_obj{};
