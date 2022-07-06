@@ -29,9 +29,9 @@ void ShmDataSender::Start(long size) {
 
 void ShmDataSender::Stop() {
 
-//    shared_memory_object::remove(_name.c_str());
-//    named_mutex::remove(std::string("mtx_" + _name).c_str());
-//    named_condition::remove(std::string("cnd_" + _name).c_str());
+    shared_memory_object::remove(_name.c_str());
+    named_mutex::remove(std::string("mtx_" + _name).c_str());
+    named_condition::remove(std::string("cnd_" + _name).c_str());
 
     delete named_mtx;
     delete named_cnd;
