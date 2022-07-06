@@ -17,6 +17,7 @@ ShmDataReceiver::~ShmDataReceiver() {
 }
 
 bool ShmDataReceiver::Start() {
+
     _isOpened = CheckIsOpened();
 
     if(!_isOpened){
