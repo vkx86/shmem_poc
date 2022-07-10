@@ -6,7 +6,6 @@
 #define SHMEM_POC_SHMDATASENDER_H
 
 #include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/named_condition.hpp>
 
@@ -19,7 +18,7 @@ public:
 
     void Start(long size);
     void Stop();
-    void SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data);
+    void SendData(uint8_t *data, size_t dataSize);
     void NotifyDataSent();
 
 private:

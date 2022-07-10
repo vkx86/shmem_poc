@@ -10,6 +10,7 @@
 
 struct DataEnvelope {
     uint32_t FrameId;
+    uint8_t FrameRelated[154];
     uint32_t DataSize;
     uint8_t Data[];
 };

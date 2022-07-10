@@ -2,12 +2,8 @@
 // Created by vadim on 5/22/22.
 //
 
-#include <chrono>
 #include <iostream>
-#include "boost/date_time/posix_time/posix_time_types.hpp"
-
 #include "ShmDataSender.h"
-#include "ShmDataExchDefs.h"
 
 ShmDataSender::ShmDataSender(const char *name) {
     _name = name;
@@ -20,18 +16,18 @@ ShmDataSender::~ShmDataSender(){
 void ShmDataSender::Start(long size) {
     //Stop();
 
-    share_obj = new shared_memory_object(open_or_create, _name.c_str(), read_write);
+    share_obj = new shared_memory_object(create_only, _name.c_str(), read_write);
     share_obj->truncate(size);
 
-    named_mtx = new named_mutex(open_or_create, std::string("mtx_" + _name).c_str());
-    named_cnd = new named_condition(open_or_create, std::string("cnd_" + _name).c_str());
+    named_mtx = new named_mutex(create_only, std::string("mtx_" + _name).c_str());
+    named_cnd = new named_condition(create_only, std::string("cnd_" + _name).c_str());
 }
 
 void ShmDataSender::Stop() {
 
-//    shared_memory_object::remove(_name.c_str());
-//    named_mutex::remove(std::string("mtx_" + _name).c_str());
-//    named_condition::remove(std::string("cnd_" + _name).c_str());
+    shared_memory_object::remove(_name.c_str());
+    named_mutex::remove(std::string("mtx_" + _name).c_str());
+    named_condition::remove(std::string("cnd_" + _name).c_str());
 
     delete named_mtx;
     delete named_cnd;
@@ -42,36 +38,17 @@ void ShmDataSender::Stop() {
     share_obj = nullptr;
 }
 
-void ShmDataSender::SendData(uint32_t frameId, uint32_t dataSize, uint8_t *data) {
+void ShmDataSender::SendData(uint8_t *data, size_t dataSize) {
 
     mapped_region mmap(*share_obj, read_write);
-    auto *dataPtr = (DataEnvelope*)mmap.get_address();
+    auto *shmPtr = (uint8_t *)mmap.get_address();
 
     scoped_lock<named_mutex> lock{*named_mtx};
 
-    dataPtr->FrameId = frameId;
-    dataPtr->DataSize = dataSize;
-    memcpy(dataPtr->Data, data, dataSize);
-
-//    auto time = std::chrono::system_clock::now().time_since_epoch();
-//    std::chrono::seconds seconds = std::chrono::duration_cast< std::chrono::seconds >(time);
-//    std::chrono::microseconds ms = std::chrono::duration_cast< std::chrono::microseconds >(time);
-//    auto result = (double) seconds.count() + ((double) (ms.count() % 1000000)/1000000.0);
-//    std::cout << "Data sent at: " << std::to_string(result) << std::endl;
+    memcpy(shmPtr, data, dataSize);
 
     named_cnd->notify_all();
     named_cnd->wait(lock);
-
-//    boost::posix_time::ptime timeOut(boost::posix_time::second_clock::local_time());
-//    std::cout << timeOut.time_of_day().ticks() << std::endl;
-//    timeOut += boost::posix_time::seconds(2);
-//    std::cout << timeOut.time_of_day().ticks() << std::endl;
-//
-//    if( !named_cnd->timed_wait(lock, timeOut)){
-//        std::cout << "timed out" << std::endl;
-//    }
-
-    //std::cout << "unlocked" << std::endl;
 }
 
 void ShmDataSender::NotifyDataSent() {

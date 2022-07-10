@@ -6,13 +6,10 @@
 #define SHMEM_POC_SHMDATARECEIVER_H
 
 #include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/named_condition.hpp>
 
 using namespace boost::interprocess;
-
-#include "ShmDataExchDefs.h"
 
 class ShmDataReceiver {
 public:
@@ -21,7 +18,7 @@ public:
 
     bool Start();
     void Stop();
-    void ReadDataInto(DataEnvelope* outData);
+    void ReadDataInto(uint8_t *dataOut, size_t dataOutSize);
     void NotifyDataRead();
 
 private:
@@ -30,7 +27,7 @@ private:
     named_condition *named_cnd{};
 
     std::string _name;
-    bool _isOpened;
+    bool _isOpened{};
     bool CheckIsOpened();
 };
 

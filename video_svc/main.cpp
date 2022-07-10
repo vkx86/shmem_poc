@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "ShmDataReceiver.h"
+#include "ShmDataExchDefs.h"
 
 static volatile int keepRunning = 1;
 
@@ -17,9 +18,6 @@ int main() {
     signal(SIGINT, intHandler);
     //signal(SIGTSTP, intHandler);
 
-    uint8_t buffer[4096];
-    DataEnvelope *received = reinterpret_cast<DataEnvelope *>(buffer);
-
     ShmDataReceiver dataReceiver(SHARED_MEM_NAME);
     while (keepRunning && !dataReceiver.Start()){
         cout << "Connecting..." << endl;
@@ -28,12 +26,13 @@ int main() {
 
     cout << "Started listening..." << endl;
 
-    dataReceiver.NotifyDataRead();
+    uint8_t buffer[4096];
+    auto *received = reinterpret_cast<DataEnvelope *>(buffer);
 
     while (keepRunning)  {
         memset(buffer, 0, sizeof(buffer));
 
-        dataReceiver.ReadDataInto(received);
+        dataReceiver.ReadDataInto(buffer, sizeof(buffer));
 
         cout << received->FrameId << " : " << received->DataSize << endl;
         cout << received->Data << endl;
