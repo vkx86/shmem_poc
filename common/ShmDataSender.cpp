@@ -14,7 +14,7 @@ ShmDataSender::~ShmDataSender(){
 }
 
 void ShmDataSender::Start(long size) {
-    //Stop();
+    Stop();
 
     share_obj = new shared_memory_object(create_only, _name.c_str(), read_write);
     share_obj->truncate(size);
